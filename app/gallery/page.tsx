@@ -1,16 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MasonryGrid from "@/components/gallery/MasonryGrid";
+import Lightbox from "@/components/gallery/Lightbox";
 import Timeline from "@/components/gallery/Timeline";
 import { usePhotoStore } from "@/stores/photo-store";
+import type { PhotoItem } from "@/types/photo";
 
 export default function GalleryPage() {
   const { photos, setPhotos, appendPhotos, cursor, setCursor, isLoading, setLoading } = usePhotoStore();
   const [activeDate, setActiveDate] = useState<string>();
   const [error, setError] = useState<string>();
   const [loaded, setLoaded] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoItem | null>(null);
 
   useEffect(() => {
     if (loaded) return;
@@ -72,6 +75,8 @@ export default function GalleryPage() {
     return safePhotos.filter((photo) => photo.takenAt?.startsWith(activeDate));
   }, [activeDate, safePhotos]);
 
+  const selectedIndex = selectedPhoto ? visiblePhotos.findIndex((p) => p.id === selectedPhoto.id) : -1;
+
   return (
     <main className="min-h-screen bg-zinc-950 px-4 py-6 text-white md:px-8">
       <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -101,7 +106,7 @@ export default function GalleryPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem]">
         <div>
-          <MasonryGrid photos={visiblePhotos} />
+          <MasonryGrid photos={visiblePhotos} onPhotoClick={setSelectedPhoto} />
           {cursor && (
             <div className="mt-6 flex justify-center">
               <button
@@ -117,6 +122,13 @@ export default function GalleryPage() {
         </div>
         <Timeline photos={safePhotos} activeDate={activeDate} onSelectDate={setActiveDate} />
       </div>
+
+      <Lightbox
+        photo={selectedPhoto}
+        onClose={() => setSelectedPhoto(null)}
+        onPrev={selectedIndex > 0 ? () => setSelectedPhoto(visiblePhotos[selectedIndex - 1]) : undefined}
+        onNext={selectedIndex < visiblePhotos.length - 1 ? () => setSelectedPhoto(visiblePhotos[selectedIndex + 1]) : undefined}
+      />
     </main>
   );
 }
