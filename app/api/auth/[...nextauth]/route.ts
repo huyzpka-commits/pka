@@ -1,9 +1,9 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import DropboxProvider from "next-auth/providers/dropbox";
 import GoogleProvider from "next-auth/providers/google";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -35,7 +35,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }: any) {
+    async jwt({ token, account }) {
       if (account) {
         token.provider = account.provider;
         token.accessToken = account.access_token;
@@ -43,7 +43,7 @@ export const authOptions = {
 
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       session.provider = token.provider;
       session.accessToken = token.accessToken;
       return session;
